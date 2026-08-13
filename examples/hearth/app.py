@@ -57,6 +57,7 @@ PROFILES = {   # cloud_safe=False — health details never ride a cloud turn
 }
 BUDGET = {"groceries_week": 165, "spent_so_far": 92,
           "notes": "birthday gift fund: don't touch"}
+SHOPPING = ["milk (oat)", "eggs"]
 
 PROPOSED: list[dict] = []
 
@@ -96,8 +97,15 @@ def get_budget():
             f"spent; {BUDGET['notes']}")
 
 
+@box.tool("The current shopping list.")
+def shopping_list():
+    return ", ".join(SHOPPING) or "empty"
+
+
 @box.tool("Offer a one-click button (label + path) instead of acting. Use "
-          "for anything that changes data: you propose, the family clicks.",
+          "for anything that changes data — e.g. to add ITEM to the "
+          "shopping list, propose path /shopping?add=ITEM. You propose, "
+          "the family clicks.",
           {"type": "object",
            "properties": {"label": {"type": "string"},
                           "path": {"type": "string"}},
@@ -112,7 +120,9 @@ duet = Duet(
     system="""You are Hearth, this family's home assistant. Warm and practical.
 Answer from TOOLS — they read the real calendar, chores, pantry, and (locally)
 profiles and budget. Never guess. To change anything (add to a list, move an
-event), use propose_action to offer a button. A few sentences, tops.""",
+event), use propose_action to offer a button — and say you're OFFERING it;
+never claim you already made the change (nothing changes until they click).
+A few sentences, tops.""",
 )
 
 # --- auto-escalation: everyday asks stay home, planning asks go big -----------
@@ -159,7 +169,9 @@ PAGE = """<!doctype html><html><head><meta charset="utf-8">
     and the budget”</i> — auto-escalates to the <b class="cloud">☁ big brain</b>.<br>
  3. <i>“what is Riley allergic to?”</i> — works at home; on a ☁ turn the
     allergy &amp; budget tools are <b>withheld</b>. Family data never leaves
-    the house.</div>
+    the house.<br>
+ 4. <i>“add tortillas to the shopping list”</i> — the assistant <b>proposes a
+    button</b>; nothing is written until <b>you</b> click it.</div>
 <div class="card" id="log"></div>
 <form onsubmit="send(event)">
  <input type="text" id="msg" placeholder="Ask Hearth…" autocomplete="off">
@@ -197,6 +209,22 @@ function add(who, text, brain, actions){
 @app.get("/", response_class=HTMLResponse)
 def home():
     return PAGE
+
+
+@app.get("/shopping", response_class=HTMLResponse)
+def shopping(add: str = ""):
+    # THIS is where the write happens — on the user's click, never the model's
+    if add and add not in SHOPPING:
+        SHOPPING.append(add)
+    items = "".join(
+        f"<div style='background:#1d1712;border:1px solid #3a2f24;"
+        f"border-radius:12px;padding:.8rem;margin:.5rem 0'>🛒 {i}</div>"
+        for i in SHOPPING)
+    return (f"<html><body style='font-family:system-ui;background:#14100c;"
+            f"color:#ede4d8;max-width:46rem;margin:2rem auto'>"
+            f"<h1>Shopping list</h1>{items}"
+            f"<p><a href='/' style='color:#f0b35f'>← back to Hearth</a></p>"
+            f"</body></html>")
 
 
 @app.post("/chat")

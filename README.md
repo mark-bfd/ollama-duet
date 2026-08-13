@@ -114,10 +114,14 @@ uvicorn examples.hearth.app:app --port 8701
    allergy and budget tools are **withheld by the dispatch layer**, and the
    assistant says so honestly. The family's health and money data never
    leave the house — by code, not by promise.
+4. **"add tortillas to the shopping list"** → the assistant **proposes a
+   button**; the list changes only when *you* click it. The model cannot
+   write — the write lives behind the click.
 
-That third beat is the one to watch: same assistant, same question, and the
+The third beat is the one to watch: same assistant, same question, and the
 answer's *reach* depends on which brain is running — enforced, visible,
-badged.
+badged. Together the four beats are the whole integration: free everyday
+turns, automatic escalation, a hard privacy fence, and human-held triggers.
 
 ## The SaaS-shaped demo: Orbit 🛰️
 
