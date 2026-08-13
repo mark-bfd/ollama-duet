@@ -9,8 +9,8 @@ state, can look things up, and hands you buttons instead of hallucinating
 actions. You don't want a metered API bill that grows with every question,
 and you don't want your private data leaving the building.
 
-`ollama-duet` is a small (~200-line, stdlib-only) pattern extracted from a
-real production deployment that does exactly that:
+`ollama-duet` is a small (~200-line, stdlib-only) toolkit that does exactly
+that:
 
 - **Tier 1 — local, free.** A small open-weight model (e.g. `qwen3.5:9b`)
   on your own [Ollama](https://ollama.com) answers the everyday questions.
@@ -154,13 +154,29 @@ Covers: the tool loop, schema withholding, dispatch withholding (the
 hallucinated-call case), failover banner, daemon-dead → direct tier with the
 bare model name, and the everything-down/no-key clear-message path.
 
-## Born from a real deployment
+## Where it fits
 
-This pattern was extracted from a private home-lab platform console — a
-FastAPI app orchestrating GPU media jobs — whose assistant answers on a
-local 9B model, fails over to a ~756B open-weight model under the same $20
-plan, and has never sent a byte of library data to any cloud. The code here
-is the same architecture with the private parts replaced by a fictional demo.
+The pattern is deliberately app-agnostic — anywhere a person or a pipeline
+would benefit from asking questions in plain language against live state:
+
+- **A SaaS product assistant** — the demo's shape: grounded answers about
+  the user's own account, buttons into the right page, PII fenced local.
+- **An internal ops/admin copilot** — wrap your dashboards' data in tools
+  and ask "what's stuck?" instead of clicking through five screens. This is
+  the fastest way to give yourself a personal assistant for getting around
+  the web apps you already run.
+- **A developer assistant over your own tooling** — build status, deploy
+  state, log summaries as tools; the assistant navigates, you decide.
+- **Automation brains** — cron jobs and workflow engines (n8n, Airflow,
+  home-grown) can call `duet.chat()` for classification, drafting, and
+  triage steps: bulk work rides the free local tier, hard judgment calls
+  ride the flat-fee big brain, and the bill never grows with volume.
+- **Personal and home apps** — a household dashboard, a hobby project, a
+  private tracker: assistants for apps that could never justify a metered
+  API bill.
+
+In every case the same three properties hold: the everyday turns are free,
+the hard turns are flat-fee, and anything you mark private stays home.
 
 ## License
 
