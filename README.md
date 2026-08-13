@@ -1,8 +1,13 @@
-# ollama-duet
+# Duet — a $20 genius for every app you run
 
-**One assistant, two brains, one API shape — frontier-class answers in your
-own app for a flat ~$20/month, with the everyday 80% running free on your
-own machine.**
+**One assistant, two brains, one API shape. The everyday questions are
+answered free on your own machine; the hard ones escalate to a
+frontier-class open-weight model for a flat ~$20/month — and anything you
+mark private is structurally unable to leave home.**
+
+No meter. No per-token anxiety. No "sorry, that data went to a third
+party." An assistant that gets *smarter when it needs to* and stays
+*yours* the whole time.
 
 You want an in-app assistant — a chatbot that actually knows your app's live
 state, can look things up, and hands you buttons instead of hallucinating
@@ -89,19 +94,36 @@ flowchart LR
    print(turn.brain, turn.text)               # "local", almost always
    ```
 
-## Try the demo
+## The flagship demo: Hearth 🏡
 
-A tiny fictional SaaS ("Orbit") with the assistant wired in:
+Everyone has a household. `examples/hearth` is a family hub whose assistant
+shows all three properties in ninety seconds:
 
 ```
 pip install fastapi uvicorn
-uvicorn demo.app:app --port 8700
-# open http://localhost:8700
+uvicorn examples.hearth.app:app --port 8701
+# open http://localhost:8701
 ```
 
-Ask it *"what's our status?"* (local tool turn), *"look up acme"* (a
-`cloud_safe=False` tool — watch what happens when the cloud brain answers),
-or *"open the tickets page for me"* (it proposes a button; it never acts).
+1. **"whose turn is dishes?"** → answered 🏠 **at home**, free, instant.
+2. **"plan next week's dinners around the pantry, the practice schedule,
+   and the budget"** → the ask is planning-shaped, so it **auto-escalates**
+   to the ☁ big brain (see `smart_escalate` — a 5-line policy you can
+   replace with anything: message length, a classifier, a checkbox).
+3. **"what is Riley allergic to?"** → works at home; on a cloud turn the
+   allergy and budget tools are **withheld by the dispatch layer**, and the
+   assistant says so honestly. The family's health and money data never
+   leave the house — by code, not by promise.
+
+That third beat is the one to watch: same assistant, same question, and the
+answer's *reach* depends on which brain is running — enforced, visible,
+badged.
+
+## The SaaS-shaped demo: Orbit 🛰️
+
+A tiny fictional product dashboard with the same wiring
+(`uvicorn demo.app:app --port 8700`): live status tools, a
+`cloud_safe=False` customer lookup, and propose-a-button-never-act.
 
 ## The three design rules that make it trustworthy
 
