@@ -1,18 +1,47 @@
-# Duet — a $20 genius for every app you run
+# Duet — near-frontier AI for your apps, $20/month flat
 
-**One assistant, two brains, one API shape. The everyday questions are
-answered free on your own machine; the hard ones escalate to a
-frontier-class open-weight model for a flat ~$20/month — and anything you
-mark private is structurally unable to leave home.**
+**The exit ramp from frontier-API pricing.** 80–90% of what an application
+assistant or automation fleet does — status queries, doc lookups, tool
+calls, triage, drafting — never needed a frontier model. Duet routes that
+majority to an open-weight model on your own hardware at **$0 marginal
+cost**, and escalates the genuinely hard asks to **near-frontier
+open-weight models** (hundreds of billions of parameters) on Ollama's
+cloud — under a flat **$20/month** plan, against $100–200/month for the
+Max tiers of the frontier providers, or an unbounded per-token bill.
 
-No meter. No per-token anxiety. No "sorry, that data went to a third
-party." An assistant that gets *smarter when it needs to* and stays
-*yours* the whole time.
+One assistant, two brains, one API shape. Anything you mark private is
+structurally unable to leave your infrastructure.
 
-You want an in-app assistant — a chatbot that actually knows your app's live
-state, can look things up, and hands you buttons instead of hallucinating
-actions. You don't want a metered API bill that grows with every question,
-and you don't want your private data leaving the building.
+## Why this exists
+
+Frontier-model pricing keeps climbing, and per-token billing has no
+ceiling — your assistant's bill grows with every question your team asks
+it. Meanwhile open-weight models crossed the "good enough for the everyday
+80%" line a while ago, and the near-frontier tier (GLM, Kimi, DeepSeek,
+Qwen at hundreds of billions of parameters) now rents at a flat
+subscription with **no overage billing path**.
+
+There's a security story here too, and it's underappreciated: the
+strongest open weights largely come from Chinese labs, and using them via
+the vendors' own hosted APIs raises data-residency questions many teams
+can't accept — while self-hosting a 700B model is a five-figure hardware
+problem. **Ollama hosts these open weights on its own infrastructure in
+the US, Europe, and Singapore, under a no-logging, no-training policy** —
+the model quality without sending data to the model vendor. Duet then adds
+the hard layer on top: tools you mark private are unreachable from cloud
+turns entirely.
+
+What was missing was the pattern that composes all of this honestly:
+local by default, near-frontier on demand, price capped by contract
+instead of budgeting code, privacy enforced in dispatch instead of
+promises.
+
+The end state this enables: **application-specific assistants** — fed your
+own docs and private source data, embedded in the app's web window — that
+can walk an operator through any question, watch the automation fleet,
+stage actions (file the feature request, prep the restart) for one-click
+human approval, and move fluidly between the local brain and staged cloud
+models as the work demands. All inside twenty dollars.
 
 `ollama-duet` is a small (~200-line, stdlib-only) toolkit that does exactly
 that:
@@ -44,17 +73,23 @@ flowchart LR
     D --> T2
 ```
 
-## Why this beats a metered API for an app assistant
+## The math, honestly
 
-| | Metered API (typical) | ollama-duet |
-|---|---|---|
-| Everyday question | $0.01–0.10 per turn, forever | **$0** (your GPU) |
-| Hard question | same model, same price | a 100×-larger open-weight model, **flat fee** |
-| Monthly worst case | unbounded | **~$20, enforced by the plan** |
-| Private data | in every prompt you send | **never leaves on local turns; withheld from cloud turns** |
-| Offline / provider outage | dead | local tier keeps answering |
+| | Frontier API (per-token) | Frontier "Max" plan | Duet |
+|---|---|---|---|
+| Everyday turn (80–90%) | metered, forever | subscription | **$0** (your GPU) |
+| Hard turn | metered, same model | subscription | near-frontier open-weight, **flat fee** |
+| Monthly worst case | **unbounded** | $100–200 | **~$20, enforced by the plan** |
+| Private data | in every prompt | in every prompt | **local turns never leave; withheld from cloud turns by dispatch** |
+| Provider outage | dead | dead | local tier keeps answering |
 
 ## Quickstart (5 minutes)
+
+**The one requirement:** a machine that can run a small (<12B) open-weight
+model locally — a modern GPU with 8–12 GB of VRAM or an Apple Silicon Mac.
+The local tier carries the everyday majority; the cloud brain activates
+only when real inference horsepower is required. Without a viable local
+machine the $20 cap still holds, but you'll feel the throttle.
 
 1. [Install Ollama](https://ollama.com/download) and pull a local brain:
    ```
@@ -94,40 +129,45 @@ flowchart LR
    print(turn.brain, turn.text)               # "local", almost always
    ```
 
-## The flagship demo: Hearth 🏡
+## The flagship demo: Foreman 🛠️
 
-Everyone has a household. `examples/hearth` is a family hub whose assistant
-shows all three properties in ninety seconds:
+`examples/foreman` is an ops console for a fleet of AI automations, with
+the assistant embedded in the web window — the shape this pattern was
+built for. Five beats:
 
 ```
 pip install fastapi uvicorn
-uvicorn examples.hearth.app:app --port 8701
-# open http://localhost:8701
+uvicorn examples.foreman.app:app --port 8702
+# open http://localhost:8702
 ```
 
-1. **"whose turn is dishes?"** → answered 🏠 **at home**, free, instant.
-2. **"plan next week's dinners around the pantry, the practice schedule,
-   and the budget"** → the ask is planning-shaped, so it **auto-escalates**
-   to the ☁ big brain (see `smart_escalate` — a 5-line policy you can
-   replace with anything: message length, a classifier, a checkbox).
-3. **"what is Riley allergic to?"** → works at home; on a cloud turn the
-   allergy and budget tools are **withheld by the dispatch layer**, and the
-   assistant says so honestly. The family's health and money data never
-   leave the house — by code, not by promise.
-4. **"add tortillas to the shopping list"** → the assistant **proposes a
-   button**; the list changes only when *you* click it. The model cannot
-   write — the write lives behind the click.
+1. **"why did report-gen fail?"** → ⚡ **local, $0** — reads the real run
+   log and answers grounded.
+2. **"how do I add a retry policy?"** → ⚡ local — answers **from your own
+   docs** (`search_docs`), quoted, not from model memory. Feed it your
+   real docs folder and you have an application assistant that knows YOUR
+   system.
+3. **"design a backfill plan for the failed runs that respects rate
+   limits"** → ☁ **near-frontier** — the ask is engineering-shaped, so
+   `smart_escalate` (a 5-line pluggable policy) sends it straight to the
+   big open-weight brain. Still inside the flat $20.
+4. **"file a feature request for run-level alerting"** → the assistant
+   **stages** the request and hands the operator a button. The queue
+   changes when the human clicks — the model cannot write.
+5. **"what's our rate on the Meridian contract?"** → the client book is
+   `cloud_safe=False`: answered locally, **withheld by the dispatch layer
+   on cloud turns**, and the assistant says so honestly. Revenue data
+   never rides a third-party turn.
 
-The third beat is the one to watch: same assistant, same question, and the
-answer's *reach* depends on which brain is running — enforced, visible,
-badged. Together the four beats are the whole integration: free everyday
-turns, automatic escalation, a hard privacy fence, and human-held triggers.
+Every reply is badged — **⚡ local · $0** or **☁ near-frontier** — so the
+operator always knows what a given answer cost and what it could see.
+Swap the fictional dicts for your run store, docs folder, and tracker API
+and Foreman is a production shape, not a toy.
 
-## The SaaS-shaped demo: Orbit 🛰️
-
-A tiny fictional product dashboard with the same wiring
-(`uvicorn demo.app:app --port 8700`): live status tools, a
-`cloud_safe=False` customer lookup, and propose-a-button-never-act.
+Two smaller examples with the same wiring: **Orbit** 🛰️
+(`demo/app.py`, a SaaS product dashboard) and **Hearth** 🏡
+(`examples/hearth`, a household hub — proof the pattern reaches consumer
+apps too).
 
 ## The three design rules that make it trustworthy
 
@@ -185,21 +225,22 @@ bare model name, and the everything-down/no-key clear-message path.
 The pattern is deliberately app-agnostic — anywhere a person or a pipeline
 would benefit from asking questions in plain language against live state:
 
-- **A SaaS product assistant** — the demo's shape: grounded answers about
-  the user's own account, buttons into the right page, PII fenced local.
+- **Automation brains** — workflow engines (n8n, Airflow, home-grown) call
+  `duet.chat()` for classification, drafting, and triage steps: bulk work
+  rides the free local tier, hard judgment calls ride the flat-fee
+  near-frontier brain, and the bill never grows with volume. This is the
+  "move 90% of your automation spend off frontier APIs" play.
+- **Application-specific assistants** — feed the toolbox your docs and
+  private source data and embed the assistant in the app's web window
+  (Foreman's shape): it walks operators through any operational question,
+  stages actions for one-click approval, and swaps brains as the work
+  demands.
 - **An internal ops/admin copilot** — wrap your dashboards' data in tools
-  and ask "what's stuck?" instead of clicking through five screens. This is
-  the fastest way to give yourself a personal assistant for getting around
-  the web apps you already run.
+  and ask "what's stuck?" instead of clicking through five screens.
+- **A SaaS product assistant** — grounded answers about the customer's own
+  account, buttons into the right page, PII fenced local (Orbit's shape).
 - **A developer assistant over your own tooling** — build status, deploy
   state, log summaries as tools; the assistant navigates, you decide.
-- **Automation brains** — cron jobs and workflow engines (n8n, Airflow,
-  home-grown) can call `duet.chat()` for classification, drafting, and
-  triage steps: bulk work rides the free local tier, hard judgment calls
-  ride the flat-fee big brain, and the bill never grows with volume.
-- **Personal and home apps** — a household dashboard, a hobby project, a
-  private tracker: assistants for apps that could never justify a metered
-  API bill.
 
 In every case the same three properties hold: the everyday turns are free,
 the hard turns are flat-fee, and anything you mark private stays home.
