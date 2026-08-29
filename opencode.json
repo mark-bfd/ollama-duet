@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "_comment": "CLOUD-OK profile. This repo is public/non-BFD, so Ollama Pro cloud models are allowed. Merged over ~/.config/opencode/opencode.json (which carries the 4 local models). Final cloud set as of 2026-08-29: glm-5.3-flash:cloud (default; Z.ai GLM-5.3-Flash, VISION + tools, medium usage) + deepseek-v4-flash:cloud (small_model / terminal-heavy work) + glm-5.3:cloud (hard reasoning only, text-only, HIGH usage) + glm-5.2:cloud (superseded, remove after Flash is validated). kimi-k3:cloud was REMOVED from the daemon 8/22 -- never list it here. Copy this file only into public/personal repos, never into bfd-ops-platform / bfd-hub.",
+  "_comment": "CLOUD-OK profile. This repo is public/non-BFD, so Ollama Pro cloud models are allowed. Merged over ~/.config/opencode/opencode.json (which carries the 4 local models). Final cloud set as of 2026-08-29: glm-5.3-flash:cloud (default; Z.ai GLM-5.3-Flash, VISION + tools, medium usage) + deepseek-v4-flash:cloud (small_model / terminal-heavy work) + glm-5.3:cloud (hard reasoning only, text-only, HIGH usage); glm-5.2:cloud REMOVED from the daemon 2026-08-29 (Mark). kimi-k3:cloud was REMOVED from the daemon 8/22 -- never list it here. Copy this file only into public/personal repos, never into bfd-ops-platform / bfd-hub.",
   "provider": {
     "ollama": {
       "models": {
@@ -22,14 +22,6 @@
         },
         "glm-5.3:cloud": {
           "name": "GLM 5.3 (Ollama Cloud, hard reasoning only, text-only, High tier)",
-          "limit": {
-            "context": 128000,
-            "output": 16384
-          },
-          "tool_call": true
-        },
-        "glm-5.2:cloud": {
-          "name": "GLM 5.2 (Ollama Cloud, SUPERSEDED by 5.3-flash)",
           "limit": {
             "context": 128000,
             "output": 16384
